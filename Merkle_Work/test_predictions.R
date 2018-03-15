@@ -5,7 +5,9 @@ rf_bball <- readRDS("../models/rf_model.RDS")
 df <- pred_ncaa_matchup(rf_bball,"Virginia","UMBC",its=1000)
 ### Picked UMBC
 
-df2 <- pred_ncaa_matchup(rf_bball,"SFA","Texas Tech",its=1000)
+df2 <- pred_ncaa_matchup(rf_bball,"Creighton","Kansas State",its=10)
+
+df2 <- pred_ncaa_matchup(rf_bball,"SFA","Texas Tech",its=10)
 
 df5 <- pred_ncaa_matchup(rf_bball,"Villanova","Radford",its=1000)
 ### Picked Radford

@@ -7,7 +7,7 @@ cl <- makeCluster(nocores)
 registerDoSNOW(cl)
 
 team_look <- read_csv("../data/TeamSpellings.csv")
-team_df <- read_csv("../data/team_data_lookup.csv")
+team_df <- read_csv("../data/team_data_lookupv2.csv")
 
 
 pred_ncaa_matchup <- function(model,team1,team2,its=1000){
@@ -24,10 +24,22 @@ pred_ncaa_matchup <- function(model,team1,team2,its=1000){
   pred_vals <- foreach(i=1:its,.combine=c, .packages = c("dplyr","stats","randomForest","xgboost"),
                        .export = c("team_look","team_df","t1_id","t2_id"),
                        .options.snow = opts) %dopar% {
-    team_t1 <- team_df %>% filter(TeamID == t1_id) %>% select(-TeamID,-team,-win.) %>% sample_frac(0.33) %>% 
-      summarize_all(funs(mean))
-    team_t2 <- team_df %>% filter(TeamID == t2_id) %>% select(-TeamID,-team,-win.) %>% sample_frac(0.33) %>% 
-      summarize_all(funs(mean))
+    team_t1 <- team_df %>% filter(TeamID == t1_id) %>% select(-TeamID,-team) %>% mutate(team_conf=as.numeric(as.character(team_conf))) %>% 
+      sample_frac(0.33) %>% 
+      summarize_all(funs(mean)) %>% mutate(team_conf=as.factor(team_conf))
+    if(as.numeric(as.character(team_t1$team_conf))==0){
+      levels(team_t1$team_conf) <- c("0","1")
+    }else{
+      levels(team_t1$team_conf) <- c("1","0")
+    }
+    team_t2 <- team_df %>% filter(TeamID == t2_id) %>% select(-TeamID,-team) %>% mutate(team_conf=as.numeric(as.character(team_conf))) %>% 
+      sample_frac(0.33) %>% 
+      summarize_all(funs(mean)) %>% mutate(team_conf=as.factor(team_conf))
+    if(as.numeric(as.character(team_t2$team_conf))==0){
+      levels(team_t2$team_conf) <- c("0","1")
+    }else{
+      levels(team_t2$team_conf) <- c("1","0")
+    }
     colnames(team_t2) <- paste0("opp.",colnames(team_t2))
     
     final_df <- cbind(team_t1,team_t2)
